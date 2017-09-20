@@ -38,54 +38,78 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 	}
 })
 
-client.on("message", (message) => {
-	const args = message.content.slice(config.prefix.length).trim().split(/\s+/);
-	const command = args.shift().toLowerCase();
-
-	if (!message.content.startsWith(config.prefix) || message.author.bot) return;
-
-	if (command === "ping") {
-		message.channel.send("pong!");
-	}
-	else if (command === "foo") {
-		message.channel.send("bar!");
-	}
-	else if (command === "prefix") {
-		if (message.author.id !== config.ownerID) return;
+var commands = {
+	"ping": {
+		process: function(client, msg, args) {
+			msg.channel.send("pong!");
+		}
+	},
+	"foo": {
+		process: function(client, msg, args) {
+			msg.channel.send("bar!");
+		}
+	},
+	"prefix": {
+		process: function(client, msg, args) {
+		if (msg.author.id !== config.ownerID) return;
 
 		let newPrefix = args[0];
 
 		config.prefix = newPrefix;
 
 		fs.writeFile("./config.json", JSON.stringify(config), (err) => console.error);
-		message.channel.send("Changed prefix to: " + config.prefix);
-	}
-	else if (command === "users") {
-		// how to interactively set guildID? what if bot is in multiple guilds?
-		message.channel.send("Users online: " + client.guilds.get(config.guildID).members.size);
-	}
-	else if (command === "kick") {
-		let member = message.mentions.members.first();
-		member.kick();
-	}
-	else if (command === "eyebleach") {
-		r.getRandomSubmission('aww').then(post => {
-			message.channel.send(post.url)
-		})
-	}
-	else if (command === "meao") {
-		if (message.member.voiceChannel === undefined) {
-			message.channel.send("Not in a voice channel!");
-			return;
+		msg.channel.send("Changed prefix to: " + config.prefix);
 		}
-		let voiceChannel = message.member.voiceChannel;
-		voiceChannel.join().then(connection => {
-			const dispatchMeao = connection.playFile('./VO_CS2_117_Play_01.ogg');
-			dispatchMeao.on("end", end => {
-				voiceChannel.leave();
+	},
+	"users": {
+		process: function(client, msg, args) {
+			// how to interactively set guildID? what if bot is in multiple guilds?
+			msg.channel.send("Users online: " + client.guilds.get(config.guildID).members.size);
+		}
+	},
+	"kick": {
+		process: function(client, msg, args) {
+			let member = msg.mentions.members.first();
+			member.kick();
+		}
+	},
+	"eyebleach": {
+		process: function(client, msg, args) {
+			r.getRandomSubmission('aww').then(post => {
+				msg.channel.send(post.url)
 			})
-		}).catch(err => console.log(err));
+		}
+	},
+	"meao": {
+		process: function(client, msg, args) {
+			if (msg.member.voiceChannel === undefined) {
+				msg.channel.send("Not in a voice channel!");
+				return;
+			}
+			let voiceChannel = msg.member.voiceChannel;
+			voiceChannel.join().then(connection => {
+				const dispatchMeao = connection.playFile('./VO_CS2_117_Play_01.ogg');
+				dispatchMeao.on("end", end => {
+					voiceChannel.leave();
+				})
+			}).catch(err => console.log(err));
+		}
 	}
-});
+}
+
+function executeMessageCommand(msg) {
+	const args = msg.content.slice(config.prefix.length).trim().split(/\s+/);
+	const commandText = args.shift().toLowerCase();
+	const command = commands[commandText];
+
+	if (!msg.content.startsWith(config.prefix) || msg.author.bot) return;
+
+	if (command) {
+		command.process(client, msg, args);
+	}
+	
+}
+
+client.on("message", (msg) => executeMessageCommand(msg));
 
 client.login(config.token);
