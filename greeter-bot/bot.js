@@ -27,7 +27,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 		let voiceChannel = newMember.voiceChannel;
 
 		voiceChannel.join().then(connection => {
-			const dispatch = connection.playFile('./onxyia_sound.ogg');
+			const dispatch = connection.playFile('./onyxia_sound.ogg');
 			dispatch.on("end", end => {
 				voiceChannel.leave();
 			})
