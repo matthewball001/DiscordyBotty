@@ -16,6 +16,28 @@ client.on("ready", () => {
 	console.log("I am ready!");
 });
 
+client.on("voiceStateUpdate", (oldMember, newMember) => {
+	if (oldMember.id !== config.ownerID) return;
+
+	let newChannel = newMember.voiceChannel;
+	let oldChannel = oldMember.voiceChannel;
+
+	if (oldChannel === undefined && newChannel !== undefined) {
+		// User joined
+		let voiceChannel = newMember.voiceChannel;
+
+		voiceChannel.join().then(connection => {
+			const dispatch = connection.playFile('./onxyia_sound.ogg');
+			dispatch.on("end", end => {
+				voiceChannel.leave();
+			})
+		}).catch(err => console.log(err));
+	}
+	else if (newChannel === undefined) {
+		// user left channel
+	}
+})
+
 client.on("message", (message) => {
 	const args = message.content.slice(config.prefix.length).trim().split(/\s+/);
 	const command = args.shift().toLowerCase();
@@ -58,8 +80,6 @@ client.on("message", (message) => {
 		}
 		let voiceChannel = message.member.voiceChannel;
 		voiceChannel.join().then(connection => {
-			message.channel.send("I'm in the channel");
-
 			const dispatchMeao = connection.playFile('./VO_CS2_117_Play_01.ogg');
 			dispatchMeao.on("end", end => {
 				voiceChannel.leave();
