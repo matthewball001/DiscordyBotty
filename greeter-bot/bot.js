@@ -40,16 +40,19 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 
 var commands = {
 	"ping": {
+		usage: "[message]",
 		process: function(client, msg, args) {
 			msg.channel.send("pong!");
 		}
 	},
 	"foo": {
+		usage: "[message]",
 		process: function(client, msg, args) {
 			msg.channel.send("bar!");
 		}
 	},
 	"prefix": {
+		usage: "<new prefix>",
 		process: function(client, msg, args) {
 		if (msg.author.id !== config.ownerID) return;
 
@@ -62,18 +65,21 @@ var commands = {
 		}
 	},
 	"users": {
+		usage: "[displays number of members in server]",
 		process: function(client, msg, args) {
 			// how to interactively set guildID? what if bot is in multiple guilds?
 			msg.channel.send("Users online: " + client.guilds.get(config.guildID).members.size);
 		}
 	},
 	"kick": {
+		usage: "<user>",
 		process: function(client, msg, args) {
 			let member = msg.mentions.members.first();
 			member.kick();
 		}
 	},
 	"eyebleach": {
+		usage: "[returns a random Reddit post from \/r\/eyebleach]",
 		process: function(client, msg, args) {
 			r.getRandomSubmission('aww').then(post => {
 				msg.channel.send(post.url)
@@ -81,6 +87,7 @@ var commands = {
 		}
 	},
 	"meao": {
+		usage: "[plays \"My eyes are open\" in current voice channel]",
 		process: function(client, msg, args) {
 			if (msg.member.voiceChannel === undefined) {
 				msg.channel.send("Not in a voice channel!");
@@ -104,7 +111,15 @@ function executeMessageCommand(msg) {
 
 	if (!msg.content.startsWith(config.prefix) || msg.author.bot) return;
 
-	if (command) {
+	if (commandText === "help") {
+		var arrayCommands = Object.keys(commands).sort();
+		var reply = "";
+		for (var i in arrayCommands) {
+			reply += config.prefix + arrayCommands[i] + " " + commands[arrayCommands[i]].usage + "\n";
+		}
+		msg.channel.send(reply);
+	}
+	else if (command) {
 		command.process(client, msg, args);
 	}
 	
