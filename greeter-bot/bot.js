@@ -65,10 +65,22 @@ var commands = {
 		}
 	},
 	"users": {
-		usage: "[displays number of members in server]",
+		usage: "[displays number of online members]",
 		process: function(client, msg, args) {
+			if (!client.guilds.get(config.guildID).available) {
+				console.log("Guild not available!");
+				return;
+			}
+
 			// how to interactively set guildID? what if bot is in multiple guilds?
-			msg.channel.send("Users online: " + client.guilds.get(config.guildID).members.size);
+			var guildMems = client.guilds.get(config.guildID).members;
+
+			// filter online members
+			var onlineMembers = guildMems.filter(function(member) {
+				return member.presence.status === 'online';
+			});
+
+			msg.channel.send("Users online: " + onlineMembers.size);
 		}
 	},
 	"kick": {
