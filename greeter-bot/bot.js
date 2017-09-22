@@ -84,9 +84,13 @@ var commands = {
 		}
 	},
 	"kick": {
-		usage: "<user>",
+		usage: "<@user>",
 		process: function(client, msg, args) {
 			let member = msg.mentions.members.first();
+			if (msg.member.id !== config.ownerID) {
+				msg.channel.send("Silly, only the owner can kick members.");
+				return;
+			}
 			member.kick();
 		}
 	},
