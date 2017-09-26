@@ -3,6 +3,9 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require("./config.json");
 const snoowrap = require("snoowrap");
+const Movie = require("./movie.js");
+
+const readline = require("readline");
 const fs = require("fs");
 
 const r = new snoowrap({
@@ -27,7 +30,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 		let voiceChannel = newMember.voiceChannel;
 
 		voiceChannel.join().then(connection => {
-			const dispatch = connection.playFile('./onyxia_sound.ogg');
+			const dispatch = connection.playFile('./deathwing-sound.ogg');
 			dispatch.on("end", end => {
 				voiceChannel.leave();
 			})
@@ -40,13 +43,13 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 
 var commands = {
 	"ping": {
-		usage: "[message]",
+		usage: "[returns \"pong!\"]",
 		process: function(client, msg, args) {
 			msg.channel.send("pong!");
 		}
 	},
 	"foo": {
-		usage: "[message]",
+		usage: "[returns \"bar!\"]",
 		process: function(client, msg, args) {
 			msg.channel.send("bar!");
 		}
@@ -65,7 +68,7 @@ var commands = {
 		}
 	},
 	"users": {
-		usage: "[displays number of online members]",
+		usage: "[returns number of online members]",
 		process: function(client, msg, args) {
 			if (!client.guilds.get(config.guildID).available) {
 				console.log("Guild not available!");
@@ -116,6 +119,33 @@ var commands = {
 					voiceChannel.leave();
 				})
 			}).catch(err => console.log(err));
+		}
+	},
+	"roll": {
+		usage: "[returns a number between 1 and 100]",
+		process: function(client, msg, args) {
+			let randomNum = Math.floor(Math.random() * (100 - 1 + 1)) + 1;
+			msg.channel.send(msg.author + " rolled a: " + randomNum);
+		}
+	},
+	"pickmovie": {
+		usage: "<genre>",
+		process: function(client, msg, args) {
+			msg.channel.send("Picking a " + args[0] + " genre movie...");
+			var movies = [];
+			let rl = readline.createInterface({
+					input: fs.createReadStream('./scifi_movies')
+				});
+
+			rl.on('line', function (line) {
+ 				let movieName = line.slice(0, line.length-1-2);
+ 				let movieGenre = args[0];
+ 				let movieWatched = line[line.length-1];
+
+ 				let movie = new Movie(movieName, movieGenre, movieWatched);
+
+ 				console.log("Pushing " + movie);
+ 				});
 		}
 	}
 }
