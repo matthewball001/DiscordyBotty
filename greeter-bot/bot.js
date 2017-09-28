@@ -129,23 +129,35 @@ var commands = {
 		}
 	},
 	"pickmovie": {
-		usage: "<genre>",
+		usage: "<genre> [returns a random movie from genre]",
 		process: function(client, msg, args) {
-			msg.channel.send("Picking a " + args[0] + " genre movie...");
 			var movies = [];
-			let rl = readline.createInterface({
-					input: fs.createReadStream('./scifi_movies')
-				});
 
-			rl.on('line', function (line) {
- 				let movieName = line.slice(0, line.length-1-2);
- 				let movieGenre = args[0];
- 				let movieWatched = line[line.length-1];
+			if (args[0] === undefined) {
+				msg.channel.send("Please specify a genre (action, thriller, scifi)."
+								+ " Ex: !pickmovie scifi");
+			}
+			else {
+				msg.channel.send("Picking a " + args[0] + " genre movie...");
+				let rl = readline.createInterface({
+						input: fs.createReadStream('./movies/' + args[0] + '_movies')
+					});
 
- 				let movie = new Movie(movieName, movieGenre, movieWatched);
+				rl.on('line', function (line) {
+	 				let movieName = line.slice(0, line.length - 1 - 2);
+	 				let movieGenre = args[0];
+	 				let movieWatched = line[line.length - 1];
 
- 				console.log("Pushing " + movie);
- 				});
+	 				let movie = new Movie(movieName, movieGenre, movieWatched);
+	 				movies.push(movie);
+	 			});
+
+	 			rl.on('close', function () {
+					let randomNum = Math.floor(Math.random() * (movies.length - 1)) + 1;
+
+					msg.channel.send("Get the popcorn! We're watching: " + movies[randomNum].name);
+	 			});
+			}
 		}
 	}
 }
@@ -158,7 +170,7 @@ function executeMessageCommand(msg) {
 	if (!msg.content.startsWith(config.prefix) || msg.author.bot) return;
 
 	if (commandText === "help") {
-		var arrayCommands = Object.keys(commands).sort();
+		var arrayCommands = Object.keys(commands).sort();	// sort commands for output
 		var reply = "";
 		for (var i in arrayCommands) {
 			reply += config.prefix + arrayCommands[i] + " " + commands[arrayCommands[i]].usage + "\n";
