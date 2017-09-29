@@ -1,2 +1,2 @@
 # DiscordyBotty
-one of many lines of code. Understand that you are honored.
+The beginning of DiscordyBotty. I have high hopes and dreams for this.
