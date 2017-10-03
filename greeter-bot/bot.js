@@ -117,7 +117,7 @@ var commands = {
 			}
 			let voiceChannel = msg.member.voiceChannel;
 			voiceChannel.join().then(connection => {
-				const dispatchMeao = connection.playFile("./VO_CS2_117_Play_01.ogg");
+				const dispatchMeao = connection.playFile("./my_eyes_are_open.ogg");
 				dispatchMeao.on("end", end => {
 					voiceChannel.leave();
 				})
