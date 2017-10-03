@@ -7,6 +7,25 @@ const Movie = require("./movie.js");
 
 var mysql = require("mysql");
 
+var con = mysql.createConnection({
+	host: "localhost",
+	user: config.sqlUsername,
+	password: config.sqlPassword,
+	database: "discord_bot_db"
+})
+
+con.connect(function(err) {
+	if (err) throw err;
+	console.log("Connected to database!");
+	let sql = "SELECT MovieName FROM movies WHERE MovieName like \"John%\" ";
+	con.query(sql, function(err, results, fields) {
+		if (err) throw err;
+		for (let i = 0; i < results.length; i++) {
+			console.log(results[i].MovieName);
+		}
+	});
+});
+
 
 const readline = require("readline");
 const fs = require("fs");
