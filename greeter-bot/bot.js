@@ -17,13 +17,6 @@ var con = mysql.createConnection({
 con.connect(function(err) {
 	if (err) throw err;
 	console.log("Connected to database!");
-	let sql = "SELECT MovieName FROM movies WHERE MovieName like \"John%\" ";
-	con.query(sql, function(err, results, fields) {
-		if (err) throw err;
-		for (let i = 0; i < results.length; i++) {
-			console.log(results[i].MovieName);
-		}
-	});
 });
 
 
@@ -98,10 +91,10 @@ var commands = {
 			}
 
 			// how to interactively set guildID? what if bot is in multiple guilds?
-			var guildMems = client.guilds.get(config.guildID).members;
+			let guildMems = client.guilds.get(config.guildID).members;
 
 			// filter online members
-			var onlineMembers = guildMems.filter(function(member) {
+			let onlineMembers = guildMems.filter(function(member) {
 				return member.presence.status === "online";
 			});
 
@@ -153,40 +146,30 @@ var commands = {
 	"pickmovie": {
 		usage: "<genre> [returns a random movie from genre]",
 		process: function(client, msg, args) {
-			var movies = [];
-
 			if (args[0] === undefined) {
 				msg.channel.send("Please specify a genre (action, thriller, scifi)."
 								+ " Ex: !pickmovie scifi");
 			}
 			else {
-				var moviePath = "./movies/" + args[0] + "_movies";
+				let genre = args[0].toLowerCase();
+				msg.channel.send("Picking " + genre + " movie...");
 
-				msg.channel.send("Picking a " + args[0] + " movie...");
+				
+				let sql = "SELECT * FROM movies " 
+						+ "WHERE Genre = \"" + genre + "\"" ;
+				con.query(sql, function(err, results, fields) {
+					if (err) {
+						return console.log(err);
+					}
+					else if (results.length <= 0) {
+						msg.channel.send("No " + genre + " movies found.");
+						return;
+					}
+					let randomSelection = Math.floor(Math.random() * (results.length-1));
 
-				let rl = readline.createInterface({
-						input: fs.createReadStream(moviePath)
-					});
-
-				rl.input.on("error", function(err) {
-					msg.channel.send("Couldn't find a " + args[0] + " movies file. " + 
-										"Try a different genre.");
-				})
-
-				rl.on("line", function (line) {
-	 				let movieName = line.slice(0, line.length - 1 - 2);
-	 				let movieGenre = args[0];
-	 				let movieWatched = line[line.length - 1];
-
-	 				let movie = new Movie(movieName, movieGenre, movieWatched);
-	 				movies.push(movie);
-	 			});
-
-	 			rl.on("close", function () {
-					let randomNum = Math.floor(Math.random() * (movies.length - 1)) + 1;
-
-					msg.channel.send("Get the popcorn! We're watching: " + movies[randomNum].name);
-	 			});
+					msg.channel.send("Get the popcorn! We're watching: " 
+										+ results[randomSelection].MovieName);
+				});
 			}
 		}
 	}
@@ -202,7 +185,7 @@ function executeMessageCommand(msg) {
 	if (commandText === "help") {
 		var arrayCommands = Object.keys(commands).sort();	// sort commands for output
 		var reply = "";
-		for (var i in arrayCommands) {
+		for (let i in arrayCommands) {
 			reply += config.prefix + arrayCommands[i] + " " + commands[arrayCommands[i]].usage + "\n";
 		}
 		msg.channel.send(reply);
