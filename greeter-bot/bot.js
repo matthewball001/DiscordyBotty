@@ -33,7 +33,7 @@ client.on("voiceStateUpdate", (oldMember, newMember) => {
 		let voiceChannel = newMember.voiceChannel;
 
 		voiceChannel.join().then(connection => {
-			const dispatch = connection.playFile("./deathwing-sound.ogg");
+			const dispatch = connection.playFile("./alexstrasza-sound.ogg");
 			dispatch.on("end", end => {
 				voiceChannel.leave();
 			})
