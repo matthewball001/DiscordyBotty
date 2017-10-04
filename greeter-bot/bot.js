@@ -8,10 +8,10 @@ const Movie = require("./movie.js");
 var mysql = require("mysql");
 
 var con = mysql.createConnection({
-	host: "localhost",
+	host: config.sqlHost,
 	user: config.sqlUsername,
 	password: config.sqlPassword,
-	database: "discord_bot_db"
+	database: config.sqlDatabaseName
 })
 
 con.connect(function(err) {
