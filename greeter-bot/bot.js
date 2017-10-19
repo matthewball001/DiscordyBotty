@@ -40,7 +40,6 @@ function play(connection, msg) {
 	// after ending, check if queue has another link
 	server.dispatcher.on("end", function() {
 		server.queue.shift();
-		console.log("after shift, queue.length: " + server.queue.length);
 
 		if (server.queue[0]) {
 			play(connection, msg);
@@ -217,7 +216,6 @@ var commands = {
 
 			let server = servers[msg.guild.id];
 			server.queue.push(args[0]);
-			console.log("queue.length is: " + server.queue.length);
 
 			if (!msg.guild.voiceConnection){
 				msg.member.voiceChannel.join().then(function(connection) {
@@ -229,13 +227,13 @@ var commands = {
 	"skip": {
 		usage: "skips current audio",
 		process: function(client, msg, args) {
-			let server = servers[msg.guild.id];
+			// let server = servers[msg.guild.id];
 
-			if (!server) return;
+			// if (!server) return;
 
-			if (server.dispatcher) {
-				server.dispatcher = 0;
-			}
+			// if (server.dispatcher) {
+			// 	server.dispatcher.end();
+			// }
 		}
 	},
 	"stop": {
