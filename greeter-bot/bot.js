@@ -4,8 +4,11 @@ const client = new Discord.Client();
 const config = require("./config.json");
 const snoowrap = require("snoowrap");
 const Movie = require("./movie.js");
+const YTDL = require("ytdl-core");
 
 var mysql = require("mysql");
+
+var servers = {};	// Discord servers where bot is present
 
 var con = mysql.createConnection({
 	host: config.sqlHost,
@@ -19,8 +22,6 @@ con.connect(function(err) {
 	console.log("Connected to database!");
 });
 
-
-const readline = require("readline");
 const fs = require("fs");
 
 const r = new snoowrap({
@@ -29,6 +30,26 @@ const r = new snoowrap({
 	clientSecret: config.clientSecret,
 	refreshToken: config.refreshToken
 });
+
+// plays YouTube audio in voice channel
+function play(connection, msg) {
+	var server = servers[msg.guild.id];
+
+	server.dispatcher = connection.playStream(YTDL(server.queue[0], {filter: "audioonly"}));
+
+	// after ending, check if queue has another link
+	server.dispatcher.on("end", function() {
+		server.queue.shift();
+		console.log("after shift, queue.length: " + server.queue.length);
+
+		if (server.queue[0]) {
+			play(connection, msg);
+		}
+		else {
+			connection.disconnect();
+		}
+	});
+}
 
 client.on("ready", () => {
 	console.log("I am ready!");
@@ -123,7 +144,7 @@ var commands = {
 	"meao": {
 		usage: "[plays \"My eyes are open\" in current voice channel]",
 		process: function(client, msg, args) {
-			if (msg.member.voiceChannel === undefined) {
+			if (!msg.member.voiceChannel) {
 				msg.channel.send("Not in a voice channel!");
 				return;
 			}
@@ -146,7 +167,7 @@ var commands = {
 	"pickmovie": {
 		usage: "<genre> [returns a random movie from genre]",
 		process: function(client, msg, args) {
-			if (args[0] === undefined) {
+			if (!args[0]) {
 				msg.channel.send("Please specify a genre (action, thriller, scifi)."
 								+ " Ex: !pickmovie scifi");
 			}
@@ -172,13 +193,67 @@ var commands = {
 				});
 			}
 		}
+	},
+	"play": {
+		usage: "plays YouTube link audio in channel",
+		process: function(client, msg, args) {
+			msg.delete();
+
+			if (!args[0]) {
+				msg.channel.send("No link provided.");
+				return;
+			}
+
+			if (!msg.member.voiceChannel) {
+				msg.channel.send("Not in a voice channel!");
+				return;
+			}
+
+			if (!servers[msg.guild.id]) {
+				servers[msg.guild.id] = {
+					queue: []
+				};
+			}
+
+			let server = servers[msg.guild.id];
+			server.queue.push(args[0]);
+			console.log("queue.length is: " + server.queue.length);
+
+			if (!msg.guild.voiceConnection){
+				msg.member.voiceChannel.join().then(function(connection) {
+					play(connection, msg);
+				});
+			}
+		}
+	},
+	"skip": {
+		usage: "skips current audio",
+		process: function(client, msg, args) {
+			let server = servers[msg.guild.id];
+
+			if (!server) return;
+
+			if (server.dispatcher) {
+				server.dispatcher = 0;
+			}
+		}
+	},
+	"stop": {
+		process: function(client, msg, args) {
+			if (msg.member.id !== config.ownerID) return;
+
+			let server = servers[msg.guild.id];
+
+			if (msg.guild.voiceConnection)
+				msg.guild.voiceConnection.disconnect();
+		}
 	}
 }
 
 function executeMessageCommand(msg) {
 	const args = msg.content.slice(config.prefix.length).trim().split(/\s+/);
 	const commandText = args.shift().toLowerCase();
-	const command = commands[commandText];
+	const cmd = commands[commandText];
 
 	if (!msg.content.startsWith(config.prefix) || msg.author.bot) return;
 
@@ -190,8 +265,8 @@ function executeMessageCommand(msg) {
 		}
 		msg.channel.send(reply);
 	}
-	else if (command) {
-		command.process(client, msg, args);
+	else if (cmd) {
+		cmd.process(client, msg, args);
 	}
 	
 }
