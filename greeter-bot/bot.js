@@ -238,8 +238,6 @@ var commands = {
 	},
 	"stop": {
 		process: function(client, msg, args) {
-			if (msg.member.id !== config.ownerID) return;
-
 			let server = servers[msg.guild.id];
 
 			if (msg.guild.voiceConnection)
