@@ -2,10 +2,16 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require("./config.json");
-const snoowrap = require("snoowrap");
+const snoowrap = require("snoowrap");	// reddit api
+const r = new snoowrap({				// app for reddit api
+	userAgent: "myself",
+	clientId: config.clientId,
+	clientSecret: config.clientSecret,
+	refreshToken: config.refreshToken
+});
 const Movie = require("./movie.js");
 const YTDL = require("ytdl-core");
-
+const fs = require("fs");
 var mysql = require("mysql");
 
 var servers = {};	// Discord servers where bot is present
@@ -36,15 +42,6 @@ function connectDatabase() {
 }
 
 connectDatabase();
-
-const fs = require("fs");
-
-const r = new snoowrap({
-	userAgent: "myself",
-	clientId: config.clientId,
-	clientSecret: config.clientSecret,
-	refreshToken: config.refreshToken
-});
 
 // plays YouTube audio in voice channel
 function play(connection, msg) {
