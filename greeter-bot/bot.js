@@ -2,34 +2,46 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require("./config.json");
-const snoowrap = require("snoowrap");
-const Movie = require("./movie.js");
-const YTDL = require("ytdl-core");
-
-var mysql = require("mysql");
-
-var servers = {};	// Discord servers where bot is present
-
-var con = mysql.createConnection({
-	host: config.sqlHost,
-	user: config.sqlUsername,
-	password: config.sqlPassword,
-	database: config.sqlDatabaseName
-})
-
-con.connect(function(err) {
-	if (err) throw err;
-	console.log("Connected to database!");
-});
-
-const fs = require("fs");
-
-const r = new snoowrap({
+const snoowrap = require("snoowrap");	// reddit api
+const r = new snoowrap({				// app for reddit api
 	userAgent: "myself",
 	clientId: config.clientId,
 	clientSecret: config.clientSecret,
 	refreshToken: config.refreshToken
 });
+const Movie = require("./movie.js");
+const YTDL = require("ytdl-core");
+const fs = require("fs");
+var mysql = require("mysql");
+
+var servers = {};	// Discord servers where bot is present
+
+var sqlCon;
+
+function connectDatabase() {
+	sqlCon = mysql.createConnection({
+		host: config.sqlHost,
+		user: config.sqlUsername,
+		password: config.sqlPassword,
+		database: config.sqlDatabaseName
+	});
+
+	sqlCon.connect(function(err) {
+		if (err) throw err;
+		console.log("Connected to database!");
+	});
+
+	sqlCon.on("error", function(err) {
+		console.log("database error", err);
+		if (err.code === "PROTOCOL_CONNECTION_LOST") {
+			connectDatabase();
+		} else {
+			throw err;
+		}
+	});
+}
+
+connectDatabase();
 
 // plays YouTube audio in voice channel
 function play(connection, msg) {
@@ -43,8 +55,7 @@ function play(connection, msg) {
 
 		if (server.queue[0]) {
 			play(connection, msg);
-		}
-		else {
+		} else {
 			connection.disconnect();
 		}
 	});
@@ -169,15 +180,14 @@ var commands = {
 			if (!args[0]) {
 				msg.channel.send("Please specify a genre (action, thriller, scifi)."
 								+ " Ex: !pickmovie scifi");
-			}
-			else {
+			} else {
 				let genre = args[0].toLowerCase();
 				msg.channel.send("Picking " + genre + " movie...");
 
 				
 				let sql = "SELECT * FROM movies " 
 						+ "WHERE Genre = \"" + genre + "\"" ;
-				con.query(sql, function(err, results, fields) {
+				sqlCon.query(sql, function(err, results, fields) {
 					if (err) {
 						return console.log(err);
 					}
