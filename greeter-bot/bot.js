@@ -15,8 +15,7 @@ const fs = require("fs");
 var mysql = require("mysql");
 
 var servers = {};	// Discord servers where bot is present
-
-var sqlCon;
+var sqlCon;			// MySQL connection
 
 function connectDatabase() {
 	sqlCon = mysql.createConnection({
@@ -41,17 +40,18 @@ function connectDatabase() {
 	});
 }
 
-connectDatabase();
 
 // plays YouTube audio in voice channel
 function play(connection, msg) {
+	console.log("in play()");
 	var server = servers[msg.guild.id];
 
 	server.dispatcher = connection.playStream(YTDL(server.queue[0], {filter: "audioonly"}));
+	server.queue.shift();
 
 	// after ending, check if queue has another link
 	server.dispatcher.on("end", function() {
-		server.queue.shift();
+		console.log("in dispatcher.end()");
 
 		if (server.queue[0]) {
 			play(connection, msg);
@@ -63,6 +63,7 @@ function play(connection, msg) {
 
 client.on("ready", () => {
 	console.log("I am ready!");
+	connectDatabase();
 });
 
 client.on("voiceStateUpdate", (oldMember, newMember) => {
@@ -143,8 +144,8 @@ var commands = {
 			member.kick();
 		}
 	},
-	"eyebleach": {
-		usage: "[returns a random Reddit post from \/r\/eyebleach]",
+	"aww": {
+		usage: "[returns a random Reddit post from \/r\/aww]",
 		process: function(client, msg, args) {
 			r.getRandomSubmission("aww").then(post => {
 				msg.channel.send(post.url)
@@ -224,8 +225,9 @@ var commands = {
 				};
 			}
 
-			let server = servers[msg.guild.id];
+			var server = servers[msg.guild.id];
 			server.queue.push(args[0]);
+			console.log("Added to queue, server.queue.length is: " + server.queue.length);
 
 			if (!msg.guild.voiceConnection){
 				msg.member.voiceChannel.join().then(function(connection) {
@@ -237,13 +239,14 @@ var commands = {
 	"skip": {
 		usage: "skips current audio",
 		process: function(client, msg, args) {
-			// let server = servers[msg.guild.id];
+			var server = servers[msg.guild.id];
+			console.log("There are " + server.queue.length + " songs in queue");
 
-			// if (!server) return;
+			if (!server) return;
 
-			// if (server.dispatcher) {
-			// 	server.dispatcher.end();
-			// }
+			if (server.dispatcher) {
+				server.dispatcher.end();
+			}
 		}
 	},
 	"stop": {
