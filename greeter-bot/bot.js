@@ -17,28 +17,28 @@ var mysql = require("mysql");
 var servers = {};	// Discord servers where bot is present
 var sqlCon;			// MySQL connection
 
-function connectDatabase() {
-	sqlCon = mysql.createConnection({
-		host: config.sqlHost,
-		user: config.sqlUsername,
-		password: config.sqlPassword,
-		database: config.sqlDatabaseName
-	});
+// function connectDatabase() {
+// 	sqlCon = mysql.createConnection({
+// 		host: config.sqlHost,
+// 		user: config.sqlUsername,
+// 		password: config.sqlPassword,
+// 		database: config.sqlDatabaseName
+// 	});
 
-	sqlCon.connect(function(err) {
-		if (err) throw err;
-		console.log("Connected to database!");
-	});
+// 	sqlCon.connect(function(err) {
+// 		if (err) throw err;
+// 		console.log("Connected to database!");
+// 	});
 
-	sqlCon.on("error", function(err) {
-		console.log("database error", err);
-		if (err.code === "PROTOCOL_CONNECTION_LOST") {
-			connectDatabase();
-		} else {
-			throw err;
-		}
-	});
-}
+// 	sqlCon.on("error", function(err) {
+// 		console.log("database error", err);
+// 		if (err.code === "PROTOCOL_CONNECTION_LOST") {
+// 			connectDatabase();
+// 		} else {
+// 			throw err;
+// 		}
+// 	});
+// }
 
 
 // plays YouTube audio in voice channel
@@ -63,7 +63,7 @@ function play(connection, msg) {
 
 client.on("ready", () => {
 	console.log("I am ready!");
-	connectDatabase();
+	// connectDatabase();
 });
 
 client.on("voiceStateUpdate", (oldMember, newMember) => {
