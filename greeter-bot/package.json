@@ -5,8 +5,9 @@
   "main": "bot.js",
   "author": "Matthew Ball",
   "dependencies": {
+    "@discordjs/opus": "^0.3.2",
     "discord.io": "^2.5.2",
-    "discord.js": "^11.2.1",
+    "discord.js": "^12.2.0",
     "mysql": "^2.14.1",
     "node-opus": "^0.2.7",
     "snoowrap": "^1.14.2",

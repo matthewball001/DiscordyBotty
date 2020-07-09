@@ -13,6 +13,7 @@ const Movie = require("./movie.js");
 const YTDL = require("ytdl-core");
 const fs = require("fs");
 var mysql = require("mysql");
+const { Client, MessageEmbed } = require('discord.js');
 
 var servers = {};	// Discord servers where bot is present
 var sqlCon;			// MySQL connection
@@ -250,14 +251,25 @@ var commands = {
 		}
 	},
 	"stop": {
+		usage: "stop current audio",
 		process: function(client, msg, args) {
 			let server = servers[msg.guild.id];
 
 			if (msg.guild.voiceConnection)
 				msg.guild.voiceConnection.disconnect();
 		}
+	},
+	"embed": {
+		process: function(client, msg, args) {
+			const embed = new MessageEmbed();
+
+			msg.channel.send(embed);
+		}
 	}
 }
+
+//command to add word to add to json list
+//command to show words in pages
 
 function executeMessageCommand(msg) {
 	const args = msg.content.slice(config.prefix.length).trim().split(/\s+/);
