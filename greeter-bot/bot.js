@@ -261,7 +261,8 @@ var commands = {
 	},
 	"embed": {
 		process: function(client, msg, args) {
-			const embed = new MessageEmbed();
+			const embed = new MessageEmbed()
+			.setTitle('this is a slicky embed');
 
 			msg.channel.send(embed);
 		}
