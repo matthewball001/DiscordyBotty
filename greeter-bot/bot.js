@@ -260,11 +260,50 @@ var commands = {
 		}
 	},
 	"embed": {
+		usage: "send a embeded message",
 		process: function(client, msg, args) {
 			const embed = new MessageEmbed()
-			.setTitle('this is a slicky embed');
+			.setTitle('this is a slicky embed')
+			.addField('name', 3)
+			.setAuthor('hi');
 
 			msg.channel.send(embed);
+		}
+	},
+	"add": {
+		usage: "`!add perro dog` adds the word `perro` and translation `dog` to file.",
+		process: function(client, msg, args) {
+			if(args.length <= 0){
+				msg.channel.send("No word/translation pair provided.");
+				return;
+			}
+
+			var fs = require('fs');
+			if (fs.existsSync('.\\wordsToLearn.json')) {
+				fs.readFile('.\\wordsToLearn.json', function(error, content) {
+					if(error) throw error;
+	
+					var data = JSON.parse(content);
+					console.log(data.collection.length);
+				});
+			}
+			else {
+				var obj = {
+					table: []
+				};
+				obj.table.push({word: args[0], translation: args[1]});
+				var json = JSON.stringify(obj);
+
+				fs.writeFile('.\\wordsToLearn.json', json, 'utf8', function(err, result) {
+					if(err) throw err;
+				});
+			}
+			
+			
+			// obj.table.push({name: args[0], translation: args[1]});
+
+			// var json = JSON.stringify(obj);
+			// fs.writeFile('wordsToLearn.json', json, 'utf8', callback);
 		}
 	}
 }
